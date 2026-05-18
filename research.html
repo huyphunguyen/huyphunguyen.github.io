@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Research - NGUYEN Phu-Huy - Astrophysics Research</title>
     <meta name="description" content="Research projects of NGUYEN Phu-Huy, Master's student in Astrophysics specializing in cosmology and galaxy evolution.">
-    
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Cosmic Web Large Scale Structure Background -->
     <canvas id="starfield"></canvas>
-    
+
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
@@ -29,7 +29,7 @@
                 <a href="about.html" class="nav-link">About</a>
                 <a href="cv.html" class="nav-link">CV</a>
                 <a href="research.html" class="nav-link active">Research</a>
-                <a href="notes.html" class="nav-link">Notes</a>
+                <!-- <a href="notes.html" class="nav-link">Notes</a> -->
                 <a href="travel.html" class="nav-link">Travel</a>
                 <a href="contact.html" class="nav-link">Contact</a>
                 <button class="theme-toggle" id="theme-toggle">
@@ -46,75 +46,86 @@
 
     <!-- Main Content -->
     <main>
-        <!-- Research Section -->
-        <section id="research" class="section">
+        <!-- Current Research Section -->
+        <section id="current-research" class="section">
             <div class="container">
                 <h2 class="section-title">Current Research</h2>
-                <div class="research-grid">
-                    <div class="research-card">
-                        <div class="research-image">
-                            <img src="image/proper_motion.png" alt="Quasars Proper Motion Dipole" class="proper-motion-img">
-                        </div>
-                        <div class="research-content">
-                            <h3>Quasars Proper Motion Dipole</h3>
-                            <p>Using summary statistics (2-point correlation function) of the quasars proper motion fields and simulation-based inference to infer acceleration of the Solar system and the homogeneity and isotropy of the Universe.</p>
-                            <!-- <div class="research-tools">
-                                <span class="tool-tag">Python</span>
-                                <span class="tool-tag">GADGET-2</span>
-                                <span class="tool-tag">NumPy</span>
-                                <span class="tool-tag">Matplotlib</span>
-                            </div> -->
-                            <div class="research-links">
-                                <a href="research_quasars.html" class="link-btn"><i class="fas fa-info-circle"></i> Details</a>
-                                <a href="#" class="link-btn"><i class="fab fa-github"></i> GitHub</a>
-                                <!-- <a href="#" class="link-btn"><i class="fas fa-file-pdf"></i> Paper</a> -->
-                            </div>
-                        </div>
+
+                <div class="research-content-box">
+                <div class="research-detail-content">
+                    <div class="research-detail-image">
                     </div>
 
-                    <div class="research-card">
-                        <div class="research-image">
-                            <img src="image/high_z.png" alt="High-redshift Galaxies" class="high-z-img">
-                        </div>
-                        <div class="research-content">
-                            <h3>High-redshift galaxies</h3>
-                            <p>Studying the morphologies and physical properties of high-redshift lensed galaxies</p>
-                            <!-- <div class="research-tools">
-                                <span class="tool-tag">Python</span>
-                                <span class="tool-tag">HEALPix</span>
-                                <span class="tool-tag">NaMaster</span>
-                                <span class="tool-tag">AstroPy</span>
-                            </div> -->
-                            <div class="research-links">
-                                <a href="research_highz.html" class="link-btn"><i class="fas fa-info-circle"></i> Details</a>
-                                <a href="#" class="link-btn"><i class="fab fa-github"></i> GitHub</a>
-                                <!-- <a href="#" class="link-btn"><i class="fas fa-external-link-alt"></i> Poster</a> -->
-                            </div>
-                        </div>
-                    </div>
+                    <div class="research-detail-description">
+                        <div class="card-meta">Astrometry · 2024</div>
+                        <h3 class="research-project-title">Quasars Proper Motion Dipole</h3>
 
-                    <!-- <div class="research-card">
-                        <div class="research-image">
-                            <div class="image-placeholder">
-                                <i class="fas fa-project-diagram"></i>
-                            </div>
-                        </div>
-                        <div class="research-content">
-                            <h3>Galaxy Clustering Analysis</h3>
-                            <p>Statistical analysis of galaxy distribution patterns in large-scale structure surveys to understand cosmic web formation and dark energy effects.</p>
-                            <div class="research-tools">
-                                <span class="tool-tag">Python</span>
-                                <span class="tool-tag">SciPy</span>
-                                <span class="tool-tag">Pandas</span>
-                                <span class="tool-tag">R</span>
-                            </div>
-                            <div class="research-links">
-                                <a href="#" class="link-btn"><i class="fab fa-github"></i> GitHub</a>
-                                <a href="#" class="link-btn"><i class="fas fa-code"></i> Code</a>
-                            </div>
-                        </div>
-                    </div> -->
+                        <h4>Overview</h4>
+                        <p>When the observer is moving, it cause the displacement in
+                            the apparent positions of celestial bodies in the direction of the
+                            velocity. This effect is called aberration. If the velocity changes
+                            with time, which is correspond to the acceleration, the change of
+                            displacements create a pattern of proper motions in the direction
+                            of acceleration. This effect is called secular aberration drift and
+                            can be used to detect the acceleration of the Solar System with
+                            respect to the rest frame of distant extragalactic sources.</p>
+
+                        <figure class="research-figure float-right" style="--figure-width: 600px;">
+                            <img src="image/proper_motion.png" alt="Quasars Proper Motion">
+                            <figcaption>The acceleration of the Solar System is revealed in the apparent motion of the distant quasars toward the center of the Milky Way. 
+                                    In reality, the quasars do not have proper motion. Credit: ESA and Gaia DPAC</figcaption>
+                        </figure>
+
+                        <p>Theoretically, the proper motion field induced by the acceleration of the Solar System
+                            has a unique signature in its power spectrum, which is a pure E-mode dipole pattern. However, from the power spectrum in Figure 1,
+                            we saw that the higher-order multipoles are non zero, which indicates the presence of systematics in the data or (less likely) the
+                            inhomogeineity and anisotropy of the Universe at large scales.
+                            To better understand and quantify these effects, we employ simulation-based inference (SBI) techniques to model the proper motion field
+                            and extract constraints on the Solar System's acceleration as well as the power spectrum to identify the systematics.</p>
+
+                    
+                        <div class="clear-fix"></div>
+                    </div>
                 </div>
+                </div><!-- /.research-content-box -->
+            </div>
+        </section>
+
+        <!-- Past Research Section -->
+        <section id="past-research" class="section">
+            <div class="container">
+                <h2 class="section-title">Past Research</h2>
+
+                <div class="research-content-box">
+                <div class="research-detail-content">
+                    <div class="research-detail-image">
+                 </div>
+
+                    <div class="research-detail-description">
+                        <div class="card-meta">Spectroscopy · 2024</div>
+                        <h3 class="research-project-title">High-redshift Galaxies</h3>
+
+                        <h4>Overview</h4>
+                        <p>The history of the Universe is characterized by distinct epochs of structure assembly and formation. Among these, there is a critical period known as the Cosmic Dawn, which marks the time when the first stars and galaxies began to form.
+                            This ended the Dark Ages and initiated the Epoch of Reionization, fundamentally transforming the intergalactic medium from neutral to ionized. This is one of the last major phase transitions in the Universe and is suggested that it was
+                            largely complete by redshift z ~ 6, which is about 1 billion years after the Big Bang. Therefore, galaxies at these redshifts
+                            therefore provide a crucial window into this transitionary era, lying at the boundary between
+                            a partially ionized and a fully ionized Universe.
+                        </p>
+
+
+                        <figure class="research-figure float-right" style="--figure-width: 400px;">
+                            <img src="image/high_z.png" alt="P109 galaxy clumps">
+                                <figcaption>JWST has found the oldest galaxies ever seen, like GLASS-z13 (above), 13.4 billion lightyears away. 
+                                    Credits: GLASS-z13 (Naidu et al. 2022. Castellano et al. 2022)</figcaption>
+                            </figure>
+
+                        
+
+                            <div style="clear: both;"></div>
+                    </div>
+                </div>
+                </div><!-- /.research-content-box -->
             </div>
         </section>
     </main>
@@ -140,10 +151,10 @@
                 <div class="footer-section">
                     <h4>Connect</h4>
                     <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-orcid"></i></a>
+                        <a href="https://orcid.org/0000-0001-6380-5912" class="social-link"><i class="fab fa-orcid"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-google"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://github.com/huyphunguyen" class="social-link"><i class="fab fa-github"></i></a>
+                        <a href="https://www.linkedin.com/in/phu-huy-nguyen/" class="social-link"><i class="fab fa-linkedin"></i></a>
                     </div>
                 </div>
             </div>

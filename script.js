@@ -2,43 +2,32 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
 
-// === 2dF-STYLE COSMIC WEB FIXED TO PORTRAIT ===
-// Multi-scale filamentary structure like real observations
+
+// === COSMICWEB 3D — Survey Cones with Perspective Projection ===
+// 12 survey cones on Fibonacci sphere, true 3D perspective divide,
+// redshift color (blue→red), origin anchored to portrait/hero photo.
 class CosmicWeb {
     constructor(canvasId) {
         this.canvas = $(canvasId);
         this.ctx = this.canvas.getContext('2d');
-        
-        // Cosmic structures
-        this.filaments = [];
-        this.clusters = [];
+        this.cones = [];
         this.galaxies = [];
+        this.precession = 0;
+        this.OX = 0;
+        this.OY = 0;
         this.portraitCenter = null;
-        this.initialPortraitCenter = null; // Store initial position for offset calculation
-        
-        // Animation
-        this.time = 0;
-        
-        // Parameters
-        this.config = {
-            majorFilaments: 10, // Reduced from 15
-            intermediateFilaments: 0, // Removed
-            minorFilaments: 0, // Removed
-            pointsPerFilament: 1200,
-            wedgeAngle: Math.PI * 2, // Full 360 degrees around portrait
-            maxRadius: 600,
-            clusterCount: 35,
-            shimmerSpeed: 0.003,
-            motionAmplitude: 2,
-            aberrationOffset: 3, // Pixels to offset for chromatic aberration
-            colors: {
-                deepSpace: 'rgba(5, 8, 20, 1.0)',
-            }
+        this.initialPortraitCenter = null;
+        this.cfg = {
+            coneCount:       12,
+            galaxiesPerCone: 2200,
+            maxDist3D:       1.8,
+            coneHalfAngle:   0.18,
+            focalLength:     1.6,
+            precessionSpeed: 0.00008,
         };
-
         this.init();
     }
-    
+
     init() {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.initialize());
@@ -47,506 +36,205 @@ class CosmicWeb {
         }
     }
 
-    // Get theme-aware colors
-    getThemeColors() {
-        const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-        if (theme === 'light') {
-            return {
-                filament: 'rgba(0, 0, 0', // Darker black for light mode
-                bigBang: {
-                    core: 'rgba(0, 0, 0',
-                    mid: 'rgba(20, 20, 20',
-                    outer: 'rgba(40, 40, 40'
-                },
-                galaxy: 'rgba(20, 20, 20'
-            };
-        } else {
-            return {
-                filament: 'rgba(150, 200, 255', // Blue for dark mode
-                bigBang: {
-                    core: 'rgba(255, 255, 255',
-                    mid: 'rgba(200, 220, 255',
-                    outer: 'rgba(150, 200, 255'
-                },
-                galaxy: 'rgba(150, 200, 255'
-            };
-        }
-    }
-
     initialize() {
         this.resize();
-        this.updatePortraitPosition();
-        this.initialPortraitCenter = { ...this.portraitCenter }; // Store initial position
-        this.generateCosmicStructure();
+        this.updateOrigin();
+        this.initialPortraitCenter = { ...this.portraitCenter };
+        this.generateCones();
+        this.generateGalaxies();
         this.animate();
 
         window.addEventListener('resize', () => {
             this.resize();
-            this.updatePortraitPosition();
-            this.initialPortraitCenter = { ...this.portraitCenter }; // Reset initial position on resize
-            this.generateCosmicStructure();
+            this.updateOrigin();
+            this.initialPortraitCenter = { ...this.portraitCenter };
+            this.generateCones();
+            this.generateGalaxies();
         });
 
-        window.addEventListener('scroll', () => {
-            this.updatePortraitPosition();
-            // Don't regenerate - just update position for offset drawing on portrait pages
-            // For non-portrait pages, keep center fixed
-        });
+        window.addEventListener('scroll', () => { this.updateOrigin(); });
+
+        // Re-measure after layout settles (fonts shift DOM)
+        requestAnimationFrame(() => { this.updateOrigin(); });
     }
 
     resize() {
-        this.canvas.width = window.innerWidth;
+        this.canvas.width  = window.innerWidth;
         this.canvas.height = window.innerHeight;
     }
 
-    updatePortraitPosition() {
+    updateOrigin() {
         const portrait = document.querySelector('.about-image');
-        const isAboutPage = window.location.pathname.includes('about') || 
-                           window.location.pathname === '/' || 
-                           window.location.pathname === '/index.html';
-        
-        if (portrait && isAboutPage) {
-            // About page: center on portrait
-            const rect = portrait.getBoundingClientRect();
-            this.portraitCenter = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2,
-                radius: Math.min(rect.width, rect.height) / 2,
-                visible: rect.top < window.innerHeight && rect.bottom > 0,
-                isPortraitOrigin: true
-            };
+        const isPortraitPage = window.location.pathname.includes('about') ||
+                               window.location.pathname === '/' ||
+                               window.location.pathname.endsWith('index.html');
+
+        if (portrait && isPortraitPage) {
+            const r = portrait.getBoundingClientRect();
+            this.OX = r.left + r.width  / 2;
+            this.OY = r.top  + r.height / 2;
+            this.portraitCenter = { x: this.OX, y: this.OY, isPortrait: true };
         } else {
-            // Other pages: central bright point on the right side, similar to portrait position
-            // Position it where the portrait would typically be (right side of content area)
-            const rightOffset = Math.min(window.innerWidth * 0.75, window.innerWidth - 250);
-            this.portraitCenter = {
-                x: rightOffset,
-                y: Math.min(window.innerHeight * 0.4, 400), // Upper-right area
-                radius: 20, // Small central point
-                visible: true,
-                isPortraitOrigin: false
-            };
+            this.OX = Math.min(window.innerWidth * 0.75, window.innerWidth - 250);
+            this.OY = Math.min(window.innerHeight * 0.4, 400);
+            this.portraitCenter = { x: this.OX, y: this.OY, isPortrait: false };
         }
     }
 
-    rand(a, b) {
-        return Math.random() * (b - a) + a;
+    // Fibonacci sphere — uniform distribution of N points on unit sphere
+    fibSphere(n) {
+        const pts = [];
+        const golden = Math.PI * (3 - Math.sqrt(5));
+        for (let i = 0; i < n; i++) {
+            const y  = 1 - (i / (n - 1)) * 2;
+            const r  = Math.sqrt(1 - y * y);
+            const th = golden * i;
+            pts.push({ ax: r * Math.cos(th), ay: y, az: r * Math.sin(th) });
+        }
+        return pts;
     }
 
-    gauss(m = 0, s = 1) {
+    gauss() {
         let u = 0, v = 0;
-        while (u === 0) u = Math.random();
-        while (v === 0) v = Math.random();
-        return m + s * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+        while (!u) u = Math.random();
+        while (!v) v = Math.random();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
     }
 
-    inWedge(x, y) {
-        if (!this.portraitCenter) return false;
-        const dx = x - this.portraitCenter.x;
-        const dy = y - this.portraitCenter.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        // Allow all angles, just check distance from center
-        return dist > this.portraitCenter.radius * 1.1; // Outside origin point
+    generateCones() {
+        this.cones = this.fibSphere(this.cfg.coneCount);
     }
 
-    generateCosmicStructure() {
-        if (!this.portraitCenter) return;
-        
-        const origin = this.portraitCenter;
-        const isPortraitOrigin = origin.isPortraitOrigin;
-        
-        // Adjust parameters based on page type
-        const maxRadius = 2000; // Extended to span across page
-        const wedgeAngle = Math.PI * 2; // Always full circle now
-        
-        this.clusters = [];
-        this.filaments = [];
+    generateGalaxies() {
         this.galaxies = [];
+        for (const cone of this.cones) {
+            // Build orthonormal frame for cone
+            let ux, uy, uz;
+            if (Math.abs(cone.ax) < 0.9) {
+                ux = 0; uy = cone.az; uz = -cone.ay;
+            } else {
+                ux = -cone.az; uy = 0; uz = cone.ax;
+            }
+            const uLen = Math.sqrt(ux*ux + uy*uy + uz*uz);
+            ux /= uLen; uy /= uLen; uz /= uLen;
+            const vx = cone.ay * uz - cone.az * uy;
+            const vy = cone.az * ux - cone.ax * uz;
+            const vz = cone.ax * uy - cone.ay * ux;
 
-        // Generate clusters along the filament paths
-        for (let i = 0; i < this.config.clusterCount; i++) {
-            const r = Math.pow(Math.random(), 0.8) * maxRadius * this.rand(0.3, 1);
-            const a = Math.random() * Math.PI * 2; // Full circle
-            const x = origin.x + r * Math.cos(a) + this.rand(-30, 30);
-            const y = origin.y + r * Math.sin(a) + this.rand(-30, 30);
-            this.clusters.push({ x, y, connections: 0 });
-        }
-
-        // Major filaments - straight lines with variable skew based on position
-        // Aberration effect tilted towards down-left, lifted 10° from previous (20° down from left)
-        
-        for (let i = 0; i < this.config.majorFilaments; i++) {
-            const angle = (i / this.config.majorFilaments) * Math.PI * 2; // Evenly distributed full circle
-            
-            // Start from origin edge
-            const startX = origin.x + origin.radius * Math.cos(angle);
-            const startY = origin.y + origin.radius * Math.sin(angle);
-            
-            // Rotate the aberration direction: 180° (left) + 20° (down) = 200° (down-left, lifted 10°)
-            const aberrationDirection = Math.PI + Math.PI / 3; // 180° + 20° = 200° (down-left)
-            
-            // Calculate how aligned this filament is with the aberration direction
-            // Filaments pointing opposite to aberration direction get max skew
-            const alignmentWithAberration = Math.cos(angle - aberrationDirection);
-            
-            // Apply variable skew: filaments pointing away from down-left tilt more towards down-left
-            // Reduced magnitude: -0.4 radians (~-23°) for more subtle aberration effect
-            const variableSkew = alignmentWithAberration * -0.4;
-            
-            const aberratedAngle = angle + variableSkew;
-            const endX = origin.x + maxRadius * Math.cos(aberratedAngle);
-            const endY = origin.y + maxRadius * Math.sin(aberratedAngle);
-            
-            // Assign 3D orientation angle for this filament
-            // Map the 2D angle to a 3D orientation where 0° points toward viewer
-            // We'll use a simple mapping: angle in [0, 2π] maps to 3D angle in [-π/2, π/2]
-            // This creates variation where some filaments point toward/away from viewer
-            const angle3D = Math.sin(angle * 2) * Math.PI / 2; // Varies between -π/2 and π/2
-            
-            // For straight lines, control points are along the line (no curvature)
-            this.filaments.push({
-                p0: { x: startX, y: startY },
-                p1: { x: startX + (endX - startX) * 0.33, y: startY + (endY - startY) * 0.33 },
-                p2: { x: startX + (endX - startX) * 0.67, y: startY + (endY - startY) * 0.67 },
-                p3: { x: endX, y: endY },
-                type: 'major',
-                depth: 1.0, // Foreground filaments
-                angle3D: angle3D // 3D orientation angle
-            });
-        }
-
-        // Add background filaments for depth (faint, positioned between major filaments)
-        // Place them between major filaments but not exactly in the middle
-        const backgroundCount = 5; // Reduced number of faint filaments
-        const angleStep = (Math.PI * 2) / this.config.majorFilaments;
-        
-        for (let i = 0; i < backgroundCount; i++) {
-            // Distribute across the full circle, between major filaments
-            const majorFilamentIndex = Math.floor(i * (this.config.majorFilaments / backgroundCount));
-            // Position between major filaments, offset by 35-45% of the gap (not exactly 50%)
-            const offsetRatio = 0.35 + Math.random() * 0.1; // Random offset between 35-45%
-            const angle = (majorFilamentIndex * angleStep) + (angleStep * offsetRatio);
-            
-            const startX = origin.x + origin.radius * Math.cos(angle);
-            const startY = origin.y + origin.radius * Math.sin(angle);
-            
-            const alignmentWithAberration = Math.cos(angle - (Math.PI + Math.PI / 3));
-            const variableSkew = alignmentWithAberration * -0.4;
-            
-            const aberratedAngle = angle + variableSkew;
-            const endX = origin.x + maxRadius * 0.85 * Math.cos(aberratedAngle); // Slightly shorter than major
-            const endY = origin.y + maxRadius * 0.85 * Math.sin(aberratedAngle);
-            
-            // Assign 3D orientation angle for background filaments
-            const angle3D = Math.sin(angle * 2 + Math.PI / 4) * Math.PI / 2;
-            
-            this.filaments.push({
-                p0: { x: startX, y: startY },
-                p1: { x: startX + (endX - startX) * 0.33, y: startY + (endY - startY) * 0.33 },
-                p2: { x: startX + (endX - startX) * 0.67, y: startY + (endY - startY) * 0.67 },
-                p3: { x: endX, y: endY },
-                type: 'background',
-                depth: 0.15, // Much fainter
-                angle3D: angle3D
-            });
-        }
-
-        // Populate galaxies along filaments
-        for (const f of this.filaments) {
-            const points = this.config.pointsPerFilament; // All filaments are major now
-            
-            for (let i = 0; i < points; i++) {
-                const t = i / points;
-                const pos = this.bezierPoint(f, t);
-                if (!this.inWedge(pos.x, pos.y)) continue;
-                
-                const tangent = this.bezierTangent(f, t);
-                const len = Math.sqrt(tangent.dx * tangent.dx + tangent.dy * tangent.dy) || 1;
-                const nx = -tangent.dy / len;
-                const ny = tangent.dx / len;
-                
-                // Cone effect: width INCREASES with distance from origin
-                // Galaxies spread out more as they move away from the central point
-                // Start narrow (10) and expand wider (60) to match the cone shape
-                const minWidth = 5;    // Very tight at origin
-                const maxWidth = 120;  // Very wide at edge
-                const width = minWidth + (maxWidth - minWidth) * Math.pow(t, 1.2); // Width increases exponentially with distance
-                
-                const offset = this.gauss(0, width);
-                const dist = Math.sqrt((pos.x - origin.x) ** 2 + (pos.y - origin.y) ** 2);
-                
+            for (let k = 0; k < this.cfg.galaxiesPerCone; k++) {
+                const dist      = Math.pow(Math.random(), 0.7) * this.cfg.maxDist3D;
+                const spread    = Math.abs(this.gauss()) * dist * this.cfg.coneHalfAngle;
+                const phi       = Math.random() * Math.PI * 2;
+                const px = cone.ax * dist + (ux * Math.cos(phi) + vx * Math.sin(phi)) * spread;
+                const py = cone.ay * dist + (uy * Math.cos(phi) + vy * Math.sin(phi)) * spread;
+                const pz = cone.az * dist + (uz * Math.cos(phi) + vz * Math.sin(phi)) * spread;
                 this.galaxies.push({
-                    x: pos.x + nx * offset,
-                    y: pos.y + ny * offset,
-                    baseSize: 0.5 + Math.random() * 1.5,
+                    x: px, y: py, z: pz,
+                    t: dist / this.cfg.maxDist3D,
+                    size: 0.4 + Math.random() * 1.0,
                     phase: Math.random() * Math.PI * 2,
-                    dist,
-                    filamentDepth: f.depth || 1.0 // Store filament's depth for brightness control
                 });
             }
         }
     }
 
-    bezierPoint(f, t) {
-        const inv = 1 - t;
+    project(x, y, z) {
+        const cosP = Math.cos(this.precession);
+        const sinP = Math.sin(this.precession);
+        const rx =  x * cosP + z * sinP;
+        const ry =  y;
+        const wz = (-x * sinP + z * cosP) + this.cfg.focalLength;
+        if (wz <= 0.01) return null;
+        const scale = this.cfg.focalLength / wz;
+        const span  = Math.min(this.canvas.width, this.canvas.height) * 0.48;
         return {
-            x: inv * inv * inv * f.p0.x + 3 * inv * inv * t * f.p1.x +
-               3 * inv * t * t * f.p2.x + t * t * t * f.p3.x,
-            y: inv * inv * inv * f.p0.y + 3 * inv * inv * t * f.p1.y +
-               3 * inv * t * t * f.p2.y + t * t * t * f.p3.y
+            sx: this.OX + rx * scale * span,
+            sy: this.OY + ry * scale * span,
+            wz, scale,
         };
     }
 
-    bezierTangent(f, t) {
-        const inv = 1 - t;
-        return {
-            dx: 3 * inv * inv * (f.p1.x - f.p0.x) + 6 * inv * t * (f.p2.x - f.p1.x) +
-                3 * t * t * (f.p3.x - f.p2.x),
-            dy: 3 * inv * inv * (f.p1.y - f.p0.y) + 6 * inv * t * (f.p2.y - f.p1.y) +
-                3 * t * t * (f.p3.y - f.p2.y)
-        };
+    redshiftColor(t, alpha) {
+        const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+        if (theme === 'light') {
+            const r = Math.round(20  + t * 140);
+            const g = Math.round(20  - t * 10);
+            const b = Math.round(20  - t * 15);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+        const r = Math.round(180 + t * 75);
+        const g = Math.round(210 - t * 150);
+        const b = Math.round(255 - t * 200);
+        return `rgba(${r},${g},${b},${alpha})`;
     }
 
     draw() {
-        // Clear canvas with transparency (let CSS background show through)
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        if (!this.portraitCenter || !this.initialPortraitCenter) return;
-
-        // Calculate offset for smooth scrolling
-        this.offsetX = this.portraitCenter.x - this.initialPortraitCenter.x;
-        this.offsetY = this.portraitCenter.y - this.initialPortraitCenter.y;
-
-        // Draw in layers
-        // this.drawClusters(); // Removed - clusters looked unrelated to the cosmic web
-        this.drawFilaments();
-        this.drawGalaxies();
-        
-        // Draw bright central point (Big Bang) for non-portrait pages
-        if (!this.portraitCenter.isPortraitOrigin) {
-            this.drawBigBangPoint();
-        }
-    }
-    
-    drawBigBangPoint() {
-        if (!this.portraitCenter) return;
-        
-        const origin = this.portraitCenter;
-        const cx = origin.x;
-        const cy = origin.y;
-        
-        // Static bright point (no pulsing)
-        const pulse = 1;
-        
-        // Get theme-aware colors
-        const colors = this.getThemeColors();
-        
-        // Multiple glowing layers for bright point
-        const gradients = [
-            { radius: 40 * pulse, alpha: 0.15 },
-            { radius: 25 * pulse, alpha: 0.3 },
-            { radius: 15 * pulse, alpha: 0.5 },
-            { radius: 8 * pulse, alpha: 0.8 },
-            { radius: 3 * pulse, alpha: 1.0 }
-        ];
-        
-        for (const g of gradients) {
-            const gradient = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, g.radius);
-            gradient.addColorStop(0, `${colors.bigBang.core}, ${g.alpha})`);
-            gradient.addColorStop(0.4, `${colors.bigBang.mid}, ${g.alpha * 0.6})`);
-            gradient.addColorStop(1, `${colors.bigBang.outer}, 0)`);
-            
-            this.ctx.fillStyle = gradient;
-            this.ctx.beginPath();
-            this.ctx.arc(cx, cy, g.radius, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-    }
-
-    drawClusters() {
-        if (!this.clusters || !this.portraitCenter) return;
-        
-        const origin = this.portraitCenter;
-        const isPortraitOrigin = origin.isPortraitOrigin;
-        const maxRadius = 2000; // Match the extended radius
-        const offsetX = this.offsetX || 0;
-        const offsetY = this.offsetY || 0;
-        
-        for (const c of this.clusters) {
-            if (!this.inWedge(c.x, c.y)) continue;
-            
-            // Apply offset for scrolling
-            const cx = c.x + offsetX;
-            const cy = c.y + offsetY;
-            
-            // Distance-based fade only for portrait origin
-            const distance = Math.sqrt(Math.pow(cx - origin.x, 2) + Math.pow(cy - origin.y, 2));
-            const fadeFactor = isPortraitOrigin ? Math.max(0, 1 - distance / maxRadius) : 1;
-            
-            const r0 = 15 + 8 * c.connections;
-            const nPts = 50 + Math.floor(30 * c.connections);
-            
-            for (let i = 0; i < nPts; i++) {
-                const angle = Math.random() * 2 * Math.PI;
-                const radius = Math.pow(Math.random(), 0.5) * r0;
-                const gx = cx + radius * Math.cos(angle);
-                const gy = cy + radius * Math.sin(angle);
-                const alpha = (0.1 + 0.05 * Math.random()) * fadeFactor;
-                const size = 0.8 + Math.random() * 1.2;
-                const redShift = Math.min(1, Math.sqrt((gx - origin.x) ** 2 + (gy - origin.y) ** 2) / this.config.maxRadius);
-                const color = `rgba(${Math.floor(170 + 85 * redShift)},${Math.floor(220 - 80 * redShift)},${Math.floor(255 - 150 * redShift)},${alpha})`;
-                
-                this.ctx.fillStyle = color;
-                this.ctx.beginPath();
-                this.ctx.arc(gx, gy, size, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
-        }
-    }
-
-    drawFilaments() {
-        if (!this.filaments || !this.portraitCenter) return;
-        
-        const origin = this.portraitCenter;
-        const isPortraitOrigin = origin.isPortraitOrigin;
-        const maxRadius = 2000; // Match the extended radius
-        const offsetX = this.offsetX || 0;
-        const offsetY = this.offsetY || 0;
-        
-        // Get theme-aware colors once for all filaments
-        const colors = this.getThemeColors();
+        const W = this.canvas.width, H = this.canvas.height;
         const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-        
-        for (const f of this.filaments) {
-            // Apply offset for scrolling
-            const p0x = f.p0.x + offsetX;
-            const p0y = f.p0.y + offsetY;
-            const p1x = f.p1.x + offsetX;
-            const p1y = f.p1.y + offsetY;
-            const p2x = f.p2.x + offsetX;
-            const p2y = f.p2.y + offsetY;
-            const p3x = f.p3.x + offsetX;
-            const p3y = f.p3.y + offsetY;
-            
-            // Calculate average distance of filament from origin
-            const midX = (p0x + p3x) / 2;
-            const midY = (p0y + p3y) / 2;
-            const distance = Math.sqrt(Math.pow(midX - origin.x, 2) + Math.pow(midY - origin.y, 2));
-            const fadeFactor = isPortraitOrigin ? Math.max(0, 1 - distance / maxRadius) : 1;
-            
-            // Depth-based properties with theme-aware alpha
-            const depth = f.depth || 1.0;
-            const baseAlpha = f.type === 'background' ? 
-                (theme === 'light' ? 0.03 : 0.01) : 
-                (theme === 'light' ? 0.08 : 0.01); // In light mode: much subtler filaments
-            const alpha = baseAlpha * fadeFactor * depth;
-            
-            // Draw filament with cone/tapering effect
-            // Filaments start THIN at the central point and WIDEN as they expand outward
-            // Split into segments and gradually INCREASE width (cone expanding outward)
-            const segments = 20;
-            for (let i = 0; i < segments; i++) {
-                const t1 = i / segments;
-                const t2 = (i + 1) / segments;
-                
-                // Calculate positions
-                const pos1 = this.bezierPoint({
-                    p0: {x: p0x, y: p0y},
-                    p1: {x: p1x, y: p1y},
-                    p2: {x: p2x, y: p2y},
-                    p3: {x: p3x, y: p3y}
-                }, t1);
-                const pos2 = this.bezierPoint({
-                    p0: {x: p0x, y: p0y},
-                    p1: {x: p1x, y: p1y},
-                    p2: {x: p2x, y: p2y},
-                    p3: {x: p3x, y: p3y}
-                }, t2);
-                
-                // Calculate 3D orientation width modifier
-                // Filaments pointing toward viewer (angle3D ~ 0) should be wider
-                // Filaments pointing away or sideways should be narrower
-                // Use cosine: cos(0) = 1 (toward viewer, max width), cos(±π/2) = 0 (perpendicular, min width)
-                const angle3D = f.angle3D || 0;
-                const orientationFactor = 0.4 + 0.6 * Math.abs(Math.cos(angle3D)); // Range: 0.4 to 1.0
-                
-                // Cone effect: width INCREASES from origin (thin) to outer edge (wide)
-                // Modified by 3D orientation for foreshortening effect
-                const startWidth = f.type === 'background' ? 0.15 : 0.2;  // Very thin at origin
-                const endWidth = f.type === 'background' ? 3.5 : 8.0;     // Much wider at edge
-                const baseWidth = startWidth + (endWidth - startWidth) * t1;  // Increases with distance
-                const width = baseWidth * orientationFactor; // Apply 3D orientation scaling
-                
-                this.ctx.beginPath();
-                this.ctx.moveTo(pos1.x, pos1.y);
-                this.ctx.lineTo(pos2.x, pos2.y);
-                this.ctx.strokeStyle = `${colors.filament}, ${alpha})`;
-                this.ctx.lineWidth = width;
-                this.ctx.stroke();
-            }
-        }
-    }
+        this.ctx.clearRect(0, 0, W, H);
+        this.ctx.fillStyle = theme === 'light' ? '#f5f5f0' : '#080a0f';
+        this.ctx.fillRect(0, 0, W, H);
 
-    drawGalaxies() {
-        if (!this.galaxies || !this.portraitCenter) return;
-        
-        const origin = this.portraitCenter;
-        const isPortraitOrigin = origin.isPortraitOrigin;
-        const maxRadius = 2000; // Match the extended radius
-        const offsetX = this.offsetX || 0;
-        const offsetY = this.offsetY || 0;
-        
-        for (const g of this.galaxies) {
-            // Apply offset for scrolling
-            const gx = g.x + offsetX;
-            const gy = g.y + offsetY;
-            
-            // Distance-based fade for portrait origin (using current position)
-            const distance = Math.sqrt(Math.pow(gx - origin.x, 2) + Math.pow(gy - origin.y, 2));
-            const fadeFactor = isPortraitOrigin ? Math.max(0, 1 - distance / maxRadius) : 1;
-            
-            // Depth-based brightness: foreground filaments (depth=1.0) are much brighter
-            const filamentDepth = g.filamentDepth || 1.0;
-            const depthBrightness = filamentDepth === 1.0 ? 2.5 : 0.5; // Foreground 2.5x brighter, background 0.3x
-            
-            const baseAlpha = 0.7 + 0.3 * Math.sin(this.time * this.config.shimmerSpeed + g.phase);
-            const alpha = baseAlpha * fadeFactor * depthBrightness;
-            const r = g.baseSize * (0.7 + 0.3 * Math.sin(this.time * this.config.shimmerSpeed + g.phase));
-            const x = gx + this.config.motionAmplitude * Math.sin(this.time * 0.001 + g.phase);
-            const y = gy + this.config.motionAmplitude * Math.cos(this.time * 0.001 + g.phase);
-            const redShift = Math.min(1, g.dist / this.config.maxRadius);
-            
-            // Get theme for color calculation
-            const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-            
-            // Apply redshift effect in dark mode, simple dark gray in light mode
-            let color;
-            if (theme === 'light') {
-                // Darker and more opaque for light mode
-                const lightModeAlpha = alpha * 100; // Increase opacity by 20%
-                color = `rgba(20, 20, 20, ${lightModeAlpha})`;
-            } else {
-                // Redshift effect for dark mode (blue to red as distance increases)
-                color = `rgba(${Math.floor(170 + 85 * redShift)},${Math.floor(220 - 80 * redShift)},${Math.floor(255 - 150 * redShift)},${alpha})`;
-            }
-            
-            this.ctx.fillStyle = color;
+        // Depth-sort galaxies far→near
+        const sorted = this.galaxies.slice().sort((a, b) => b.t - a.t);
+
+        const now = performance.now();
+        for (const g of sorted) {
+            const p = this.project(g.x, g.y, g.z);
+            if (!p) continue;
+            if (p.sx < -20 || p.sx > W + 20 || p.sy < -20 || p.sy > H + 20) continue;
+
+            const depthFade = Math.max(0, 1 - (p.wz - this.cfg.focalLength) / (this.cfg.maxDist3D * 0.9));
+            const shimmer   = 0.75 + 0.25 * Math.sin(g.phase + now * 0.0009);
+            const alpha     = depthFade * depthFade * shimmer * 0.55;
+            if (alpha < 0.01) continue;
+
+            const r = Math.max(0.3, g.size * p.scale * 2.2);
             this.ctx.beginPath();
-            this.ctx.arc(x, y, r, 0, Math.PI * 2);
+            this.ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+            this.ctx.fillStyle = this.redshiftColor(g.t, alpha);
             this.ctx.fill();
         }
+
+        // Big Bang origin glow — large primordial fireball
+        const layers = [
+            { r: 220, a: 0.025 }, { r: 95, a: 0.11 },
+            { r: 280, a: 0.52  }, { r: 100, a: 0.88 }, { r: 35, a: 1.0 },
+        ];
+        for (const l of layers) {
+            const grd = this.ctx.createRadialGradient(this.OX, this.OY, 0, this.OX, this.OY, l.r);
+            if (theme === 'light') {
+                grd.addColorStop(0,   `rgba(10,10,10,${l.a})`);
+                grd.addColorStop(0.2, `rgba(40,15,5,${l.a * 0.75})`);
+                grd.addColorStop(1,   'rgba(0,0,0,0)');
+            } else {
+                grd.addColorStop(0,   `rgba(255,255,255,${l.a})`);
+                grd.addColorStop(0.15,`rgba(255,240,200,${l.a * 0.85})`);
+                grd.addColorStop(0.4, `rgba(200,225,255,${l.a * 0.55})`);
+                grd.addColorStop(1,   'rgba(0,0,0,0)');
+            }
+            this.ctx.beginPath();
+            this.ctx.arc(this.OX, this.OY, l.r, 0, Math.PI * 2);
+            this.ctx.fillStyle = grd;
+            this.ctx.fill();
+        }
+
+        // Vignette
+        const vigEdge = theme === 'light' ? 'rgba(245,245,240,0.8)' : 'rgba(8,10,15,0.8)';
+        const vig = this.ctx.createRadialGradient(
+            this.OX, this.OY, Math.min(W,H)*0.2,
+            this.OX, this.OY, Math.min(W,H)*0.9
+        );
+        vig.addColorStop(0, 'rgba(0,0,0,0)');
+        vig.addColorStop(1, vigEdge);
+        this.ctx.fillStyle = vig;
+        this.ctx.fillRect(0, 0, W, H);
     }
 
-    animate(time = 0) {
-        this.time = time;
+    animate() {
+        this.precession += this.cfg.precessionSpeed;
         this.draw();
-        requestAnimationFrame((t) => this.animate(t));
-    }
-
-    destroy() {
-        this.clusters = [];
-        this.galaxies = [];
-        this.filaments = [];
+        requestAnimationFrame(() => this.animate());
     }
 }
 
