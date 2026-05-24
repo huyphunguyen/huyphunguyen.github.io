@@ -52,8 +52,6 @@ class CosmicWeb {
             this.generateGalaxies();
         });
 
-        window.addEventListener('scroll', () => { this.updateOrigin(); });
-
         // Re-measure after layout settles (fonts shift DOM)
         requestAnimationFrame(() => { this.updateOrigin(); });
     }

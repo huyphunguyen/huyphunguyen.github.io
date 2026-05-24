@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Background Preview</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
+        #toggle {
+            position: fixed;
+            top: 20px; right: 20px;
+            z-index: 10;
+            padding: 8px 18px;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+            backdrop-filter: blur(8px);
+        }
+        [data-theme="light"] #toggle {
+            background: rgba(0,0,0,0.1);
+            color: #111;
+            border-color: rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starfield"></canvas>
+    <button id="toggle" onclick="toggleTheme()">Light mode</button>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('toggle');
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                btn.textContent = 'Dark mode';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                btn.textContent = 'Light mode';
+            }
+        }
+
+        const $ = (s) => document.querySelector(s);
+
+        class CosmicWeb {
+            constructor(canvasId) {
+                this.canvas = $(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.cones = [];
+                this.galaxies = [];
+                this.precession = 0;
+                this.OX = 0;
+                this.OY = 0;
+                this.cfg = {
+                    coneCount:       12,
+                    galaxiesPerCone: 2200,
+                    maxDist3D:       1.8,
+                    coneHalfAngle:   0.18,
+                    focalLength:     1.6,
+                    precessionSpeed: 0.00008,
+                };
+                this.initialize();
+            }
+
+            initialize() {
+                this.resize();
+                this.updateOrigin();
+                this.generateCones();
+                this.generateGalaxies();
+                this.animate();
+                window.addEventListener('resize', () => {
+                    this.resize();
+                    this.updateOrigin();
+                    this.generateCones();
+                    this.generateGalaxies();
+                });
+            }
+
+            resize() {
+                this.canvas.width  = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            updateOrigin() {
+                this.OX = Math.min(window.innerWidth * 0.75, window.innerWidth - 250);
+                this.OY = Math.min(window.innerHeight * 0.4, 400);
+            }
+
+            fibSphere(n) {
+                const pts = [];
+                const golden = Math.PI * (3 - Math.sqrt(5));
+                for (let i = 0; i < n; i++) {
+                    const y  = 1 - (i / (n - 1)) * 2;
+                    const r  = Math.sqrt(1 - y * y);
+                    const th = golden * i;
+                    pts.push({ ax: r * Math.cos(th), ay: y, az: r * Math.sin(th) });
+                }
+                return pts;
+            }
+
+            gauss() {
+                let u = 0, v = 0;
+                while (!u) u = Math.random();
+                while (!v) v = Math.random();
+                return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+            }
+
+            generateCones() {
+                this.cones = this.fibSphere(this.cfg.coneCount);
+            }
+
+            generateGalaxies() {
+                this.galaxies = [];
+                for (const cone of this.cones) {
+                    let ux, uy, uz;
+                    if (Math.abs(cone.ax) < 0.9) {
+                        ux = 0; uy = cone.az; uz = -cone.ay;
+                    } else {
+                        ux = -cone.az; uy = 0; uz = cone.ax;
+                    }
+                    const uLen = Math.sqrt(ux*ux + uy*uy + uz*uz);
+                    ux /= uLen; uy /= uLen; uz /= uLen;
+                    const vx = cone.ay * uz - cone.az * uy;
+                    const vy = cone.az * ux - cone.ax * uz;
+                    const vz = cone.ax * uy - cone.ay * ux;
+
+                    for (let k = 0; k < this.cfg.galaxiesPerCone; k++) {
+                        const dist   = Math.pow(Math.random(), 0.7) * this.cfg.maxDist3D;
+                        const spread = Math.abs(this.gauss()) * dist * this.cfg.coneHalfAngle;
+                        const phi    = Math.random() * Math.PI * 2;
+                        const px = cone.ax * dist + (ux * Math.cos(phi) + vx * Math.sin(phi)) * spread;
+                        const py = cone.ay * dist + (uy * Math.cos(phi) + vy * Math.sin(phi)) * spread;
+                        const pz = cone.az * dist + (uz * Math.cos(phi) + vz * Math.sin(phi)) * spread;
+                        this.galaxies.push({
+                            x: px, y: py, z: pz,
+                            t: dist / this.cfg.maxDist3D,
+                            size: 0.4 + Math.random() * 1.0,
+                            phase: Math.random() * Math.PI * 2,
+                        });
+                    }
+                }
+            }
+
+            project(x, y, z) {
+                const cosP = Math.cos(this.precession);
+                const sinP = Math.sin(this.precession);
+                const rx =  x * cosP + z * sinP;
+                const ry =  y;
+                const wz = (-x * sinP + z * cosP) + this.cfg.focalLength;
+                if (wz <= 0.01) return null;
+                const scale = this.cfg.focalLength / wz;
+                const span  = Math.min(this.canvas.width, this.canvas.height) * 0.48;
+                return { sx: this.OX + rx * scale * span, sy: this.OY + ry * scale * span, wz, scale };
+            }
+
+            redshiftColor(t, alpha) {
+                const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+                if (theme === 'light') {
+                    const r = Math.round(20  + t * 140);
+                    const g = Math.round(20  - t * 10);
+                    const b = Math.round(20  - t * 15);
+                    return `rgba(${r},${g},${b},${alpha})`;
+                }
+                const r = Math.round(180 + t * 75);
+                const g = Math.round(210 - t * 150);
+                const b = Math.round(255 - t * 200);
+                return `rgba(${r},${g},${b},${alpha})`;
+            }
+
+            draw() {
+                const W = this.canvas.width, H = this.canvas.height;
+                const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+                this.ctx.clearRect(0, 0, W, H);
+                this.ctx.fillStyle = theme === 'light' ? '#f5f5f0' : '#080a0f';
+                this.ctx.fillRect(0, 0, W, H);
+
+                const sorted = this.galaxies.slice().sort((a, b) => b.t - a.t);
+                const now = performance.now();
+                for (const g of sorted) {
+                    const p = this.project(g.x, g.y, g.z);
+                    if (!p) continue;
+                    if (p.sx < -20 || p.sx > W + 20 || p.sy < -20 || p.sy > H + 20) continue;
+                    const depthFade = Math.max(0, 1 - (p.wz - this.cfg.focalLength) / (this.cfg.maxDist3D * 0.9));
+                    const shimmer   = 0.75 + 0.25 * Math.sin(g.phase + now * 0.0009);
+                    const alpha     = depthFade * depthFade * shimmer * 0.55;
+                    if (alpha < 0.01) continue;
+                    const r = Math.max(0.3, g.size * p.scale * 2.2);
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+                    this.ctx.fillStyle = this.redshiftColor(g.t, alpha);
+                    this.ctx.fill();
+                }
+
+                const layers = [
+                    { r: 220, a: 0.025 }, { r: 95, a: 0.11 },
+                    { r: 280, a: 0.52  }, { r: 100, a: 0.88 }, { r: 35, a: 1.0 },
+                ];
+                for (const l of layers) {
+                    const grd = this.ctx.createRadialGradient(this.OX, this.OY, 0, this.OX, this.OY, l.r);
+                    if (theme === 'light') {
+                        grd.addColorStop(0,   `rgba(10,10,10,${l.a})`);
+                        grd.addColorStop(0.2, `rgba(40,15,5,${l.a * 0.75})`);
+                        grd.addColorStop(1,   'rgba(0,0,0,0)');
+                    } else {
+                        grd.addColorStop(0,   `rgba(255,255,255,${l.a})`);
+                        grd.addColorStop(0.15,`rgba(255,240,200,${l.a * 0.85})`);
+                        grd.addColorStop(0.4, `rgba(200,225,255,${l.a * 0.55})`);
+                        grd.addColorStop(1,   'rgba(0,0,0,0)');
+                    }
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.OX, this.OY, l.r, 0, Math.PI * 2);
+                    this.ctx.fillStyle = grd;
+                    this.ctx.fill();
+                }
+
+                const vigEdge = theme === 'light' ? 'rgba(245,245,240,0.8)' : 'rgba(8,10,15,0.8)';
+                const vig = this.ctx.createRadialGradient(
+                    this.OX, this.OY, Math.min(W,H)*0.2,
+                    this.OX, this.OY, Math.min(W,H)*0.9
+                );
+                vig.addColorStop(0, 'rgba(0,0,0,0)');
+                vig.addColorStop(1, vigEdge);
+                this.ctx.fillStyle = vig;
+                this.ctx.fillRect(0, 0, W, H);
+            }
+
+            animate() {
+                this.precession += this.cfg.precessionSpeed;
+                this.draw();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        window.addEventListener('load', () => new CosmicWeb('#starfield'));
+    </script>
+</body>
+</html>
