@@ -58,18 +58,103 @@
                     </div>
 
                     <div class="research-detail-description">
+                        <div class="card-meta">Simulation-Based Inference · 2026</div>
+                        <h3 class="research-project-title">SBI and Higher-Order Statistics</h3>
+
+                        <h4>Overview</h4>
+                        <p>Most cosmological analyses compress a survey down to two-point statistics,
+                            the correlation function or its Fourier counterpart, the power spectrum.
+                            That compression is lossless only for a Gaussian field. Gravitational
+                            collapse is not linear, so the late-time density field is strongly
+                            non-Gaussian and a large part of its information budget sits in
+                            higher-order statistics: the bispectrum (3-point), trispectrum (4-point) and other non-Gaussian
+                            summaries.
+                        </p>
+                         <figure class="research-figure float-right" style="--figure-width: 500px;">
+                            <img src="image/sbi_hos_.png" alt="Simulation-based inference and higher-order statistics">
+                            <figcaption>Galaxy configurations of increasing order, pairs, triangles and tetrahedra,
+                                measured by the 2-, 3- and 4-point functions, are passed to a neural network that
+                                learns the posterior on cosmological parameters directly from simulations.</figcaption>
+                        </figure>
+                        <p>These summaries are hard to use in practice because their likelihoods
+                            are neither Gaussian nor analytically tractable, and their covariance
+                            matrices are expensive to estimate. Simulation-based inference (SBI) sidesteps
+                            the problem entirely: instead of writing down a likelihood, we run
+                            forward simulations across the parameter space and train a neural density
+                            estimator to learn the posterior directly from the summaries. The aim is
+                            to recover the cosmological information that two-point analyses leave on
+                            the table, with tests of how far the resulting constraints can be trusted.
+                        </p>
+
+                       
+                        
+
+                        <div style="clear: both;"></div>
+                    </div>
+                </div>
+                </div><!-- /.research-content-box -->
+
+                <div class="research-content-box">
+                <div class="research-detail-content">
+                    <div class="research-detail-image">
+                    </div>
+
+                    <div class="research-detail-description">
+                        <div class="card-meta">Cosmology · 2026</div>
+                        <h3 class="research-project-title">Cosmological Parity Violation</h3>
+
+                        <h4>Overview</h4>
+
+                         <figure class="research-figure float-right" style="--figure-width: 500px;">
+                            <img src="image/parity_violation.png" alt="Cosmological parity violation">
+                            <figcaption>A tetrahedron formed by four galaxies, the configuration probed by the 4-point
+                                function. It is the simplest shape whose mirror image cannot be recovered by rotation,
+                                which is what makes it sensitive to the handedness of cosmic structure.
+                            </figcaption>
+                        </figure>
+
+                        <p>Parity is the symmetry of a system under reflection through a mirror. The
+                            standard cosmological model assumes the Universe respects it, so a
+                            statistically parity-violating signal on cosmological scales would point
+                            to new physics, most plausibly in the inflationary epoch that seeded the
+                            primordial fluctuations.
+                            Such a signal is invisible to the usual tools. For a scalar field, the
+                            2-point and 3-point functions cannot distinguish a configuration
+                            from its mirror image, so the lowest-order probe is the 4-point
+                            function, the parity-odd trispectrum of the galaxy distribution.
+                        </p>
+
+                       
+                        
+
+                        <div style="clear: both;"></div>
+                    </div>
+                </div>
+                </div><!-- /.research-content-box -->
+
+                <div class="research-content-box">
+                <div class="research-detail-content">
+                    <div class="research-detail-image">
+                    </div>
+
+                    <div class="research-detail-description">
                         <div class="card-meta">Astrometry · 2024</div>
                         <h3 class="research-project-title">Quasars Proper Motion Dipole</h3>
 
                         <h4>Overview</h4>
-                        <p>When the observer is moving, it cause the displacement in
-                            the apparent positions of celestial bodies in the direction of the
-                            velocity. This effect is called aberration. If the velocity changes
-                            with time, which is correspond to the acceleration, the change of
-                            displacements create a pattern of proper motions in the direction
-                            of acceleration. This effect is called secular aberration drift and
-                            can be used to detect the acceleration of the Solar System with
-                            respect to the rest frame of distant extragalactic sources.</p>
+                        <p>An observer in motion sees the apparent positions of celestial bodies
+                            displaced toward the direction of their velocity, an effect known as
+                            aberration. If that velocity changes with time, the displacement changes
+                            with it, and the sources trace out a pattern of proper motions pointing
+                            toward the direction of the acceleration. This is the secular aberration
+                            drift. Distant extragalactic sources have essentially no intrinsic proper
+                            motion, so any proper motion we measure for them is dominated by this
+                            effect.
+                            The Solar System orbits the Milky Way and is therefore accelerating toward
+                            the Galactic center, imprinting an apparent proper motion on these distant
+                            sources through aberration drift. Measuring their proper motion field lets
+                            us infer the acceleration of the Solar System.
+                        </p>
 
                         <figure class="research-figure float-right" style="--figure-width: 600px;">
                             <img src="image/proper_motion.png" alt="Quasars Proper Motion">
@@ -77,16 +162,11 @@
                                     In reality, the quasars do not have proper motion. Credit: ESA and Gaia DPAC</figcaption>
                         </figure>
 
-                        <p>Theoretically, the proper motion field induced by the acceleration of the Solar System
-                            has a unique signature in its power spectrum, which is a pure E-mode dipole pattern. However, measurements of the proper motion field from the Gaia mission have revealed 
-                            a significant deviation from this expected pattern, with a large B-mode dipole component that is comparable in magnitude to the E-mode dipole.
-                            To better understand and quantify these effects, we employ simulation-based inference (SBI) techniques to model the proper motion field
-                            and extract constraints on the Solar System's acceleration as well as the power spectrum to identify the systematics.</p>
 
                         <p><strong>Publication:</strong>
                             <br>
                             H.Nguyen and C. Murray (2026), Observing the Peculiar Acceleration of our Solar System with Quasar Proper Motions <a href="https://arxiv.org/abs/2605.30367" target="_blank">arXiv:2605.30367</a> (submitted to A&A)</p>
-                        <div class="clear-fix"></div>
+                        <div style="clear: both;"></div>
                     </div>
                 </div>
                 </div><!-- /.research-content-box -->
@@ -108,6 +188,11 @@
                         <h3 class="research-project-title">High-redshift Galaxies</h3>
 
                         <h4>Overview</h4>
+                         <figure class="research-figure float-right" style="--figure-width: 400px;">
+                            <img src="image/high_z.png" alt="P109 galaxy clumps">
+                                <figcaption>JWST has found the oldest galaxies ever seen, like GLASS-z13 (above), 13.4 billion lightyears away. 
+                                    Credits: GLASS-z13 (Naidu et al. 2022. Castellano et al. 2022)</figcaption>
+                            </figure>
                         <p>The history of the Universe is characterized by distinct epochs of structure assembly and formation. Among these, there is a critical period known as the Cosmic Dawn, which marks the time when the first stars and galaxies began to form.
                             This ended the Dark Ages and initiated the Epoch of Reionization, fundamentally transforming the intergalactic medium from neutral to ionized. This is one of the last major phase transitions in the Universe and is suggested that it was
                             largely complete by redshift z ~ 6, which is about 1 billion years after the Big Bang. Therefore, galaxies at these redshifts
@@ -116,11 +201,7 @@
                         </p>
 
 
-                        <figure class="research-figure float-right" style="--figure-width: 400px;">
-                            <img src="image/high_z.png" alt="P109 galaxy clumps">
-                                <figcaption>JWST has found the oldest galaxies ever seen, like GLASS-z13 (above), 13.4 billion lightyears away. 
-                                    Credits: GLASS-z13 (Naidu et al. 2022. Castellano et al. 2022)</figcaption>
-                            </figure>
+                       
 
                         
 
