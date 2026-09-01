@@ -15,6 +15,7 @@
     --text-muted: #888886;
     --accent-primary: #00bfff;
     --accent-secondary: #ff6b6b;
+    --gradient-primary: linear-gradient(135deg, #00bfff, #0077b6);
     --shadow-primary: 0 4px 20px rgba(0, 191, 255, 0.2);
     --shadow-secondary: 0 8px 40px rgba(0, 191, 255, 0.12);
     --border-color: rgba(255, 255, 255, 0.07);
@@ -30,6 +31,7 @@
     --text-secondary: #495057;
     --text-muted: #6c757d;
     --border-color: rgba(0, 0, 0, 0.1);
+    --gradient-primary: linear-gradient(135deg, #2a5f8a, #1d4266);
     --shadow-primary: 0 4px 20px rgba(0, 0, 0, 0.1);
     --shadow-secondary: 0 8px 40px rgba(0, 0, 0, 0.05);
 }
@@ -772,11 +774,8 @@ main,
     box-shadow: var(--shadow-secondary);
 }
 
-/* Button has no filled background (--gradient-primary is unset), so white
-   text is invisible on the cream light-mode background */
-[data-theme="light"] .download-btn {
-    color: #000;
-}
+/* --gradient-primary is now defined per theme, so white text stays legible
+   on the filled button in both themes */
 
 /* CV accent — steel blue dark / deep blue light */
 #cv { --accent-primary: #b8cfe8; }
