@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Software - NGUYEN Phu-Huy - Astrophysics Research</title>
+    <meta name="description" content="Software and code by NGUYEN Phu-Huy, Master's student in Astrophysics and Space Science.">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Cosmic Web Large Scale Structure Background -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">NGUYEN Phu-Huy</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="about.html" class="nav-link">About</a>
+                <a href="cv.html" class="nav-link">CV</a>
+                <a href="research.html" class="nav-link">Research</a>
+                <a href="software.html" class="nav-link active">Software</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <!-- <a href="notes.html" class="nav-link">Notes</a> -->
+                <a href="travel.html" class="nav-link">Travel</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <button class="theme-toggle" id="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <section id="software" class="section">
+            <div class="container">
+                <h2 class="section-title">Software</h2>
+                <p class="section-subtitle">Code from my research</p>
+
+                <div class="blog-grid">
+                    <a href="https://github.com/huyphunguyen/SBI_QPM" class="blog-card" target="_blank" rel="noopener">
+                        <div class="blog-card-body">
+                            <span class="blog-card-date"><i class="fab fa-github"></i> Python · Jupyter</span>
+                            <h3 class="blog-card-title">SBI_QPM</h3>
+                            <p class="blog-card-excerpt"><b>S</b>imulation-<b>b</b>ased <b>i</b>nference of the Solar-System barycentre acceleration from the <b>q</b>uasar <b>p</b>roper-<b>m</b>otion field, using vector spherical harmonics and neural posterior estimation.</p>
+                        </div>
+                    </a>
+                    <div class="blog-card">
+                        <div class="blog-card-body">
+                            <span class="blog-card-date"><i class="fas fa-hourglass-half"></i> Stay tuned</span>
+                            <h3 class="blog-card-title">Trax</h3>
+                            <p class="blog-card-excerpt"><b>Tr</b>ispectrum estimator with J<b>ax</b>-accelerated. Not released yet &mdash; stay tuned.</p>
+                        </div>
+                    </div>
+                    <div class="blog-card">
+                        <div class="blog-card-body">
+                            <span class="blog-card-date"><i class="fas fa-hourglass-half"></i> Stay tuned</span>
+                            <h3 class="blog-card-title">HOS_SBI</h3>
+                            <p class="blog-card-excerpt">Simulation-based inference of cosmological parameters with higher-order statistics of the galaxy distribution. Not released yet &mdash; stay tuned.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>NGUYEN Phu-Huy</h4>
+                    <p>Erasmus Mundus Master's Student in Astrophysics and Space Science</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="cv.html">CV</a></li>
+                        <li><a href="research.html">Research</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-orcid"></i></a>
+                        <a href="https://scholar.google.com/citations?user=80UJasAAAAAJ&amp;hl=en&amp;oi=sra" class="social-link"><i class="fab fa-google"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 NGUYEN Phu-Huy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
